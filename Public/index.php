@@ -111,10 +111,10 @@
         <p>ยินดีต้อนรับสู่ EDU CU Connect ระบบที่จัดการข้อมูลนิสิตต่างๆ ของนิสิตคณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย ได้อย่างสะดวกและรวดเร็ว</p>
         <div>
             <t>สำหรับนิสิต</t>
-            <a href="login.php" class="cta-button">เข้าสู่ระบบ</a>
+            <a href="/Public/login.php" class="cta-button">เข้าสู่ระบบ</a>
         </div>
             <t>สำหรับเจ้าหน้าที่หรืออาจารย์ เท่านั้น</t>
-            <a href="../admin/admin-login.php" class="admin-button">เข้าสู่ระบบสำหรับเจ้าหน้าที่</a>
+            <a href="/admin/admin-login.php" class="admin-button">เข้าสู่ระบบสำหรับเจ้าหน้าที่</a>
         <div class="features">
             <div class="feature-item">
                 <h3>การลงทะเบียน</h3>
