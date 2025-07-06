@@ -62,4 +62,4 @@ jobs:
           app-name: 'edu-cu-connect'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F5441CFD790E48DBA8A530181CE98073 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_997B6B28474C4F83B445A0164F9E9DFC }}
