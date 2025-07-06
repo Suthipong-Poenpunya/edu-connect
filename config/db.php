@@ -7,7 +7,10 @@ $database = "edu e-service"; // ชื่อฐานข้อมูล
 
 
 // สร้าง mysqli object และตั้งค่า SSL
-$conn = new mysqli($host, $username, $password, $database, 3306, NULL, MYSQLI_CLIENT_SSL);
+$conn = mysqli_init();
+if (!$conn) {
+    die("mysqli_init failed");
+}
 
 // เชื่อมต่อฐานข้อมูล
 if (!mysqli_real_connect($conn, $host, $username, $password, $database, 3306, NULL, MYSQLI_CLIENT_SSL)) {

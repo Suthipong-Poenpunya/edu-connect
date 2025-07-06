@@ -1,12 +1,12 @@
 <?php
 include ('/config/db.php');
 
-if (!isset($conn)) {
+/*/if (!isset($conn)) {
     die("Database connection error.");
 }
 if ($conn) {
     echo "Database connected successfully.";
-}
+}/*/
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $student_code = $_POST['student_code'];
