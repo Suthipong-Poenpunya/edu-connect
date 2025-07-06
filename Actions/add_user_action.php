@@ -3,7 +3,7 @@
 session_start();
 
 // Include the database configuration file
-include '../config/db.php';
+include '/config/db.php';
 
 // Prevent direct access to this file
 // Check if the request method is POST and the correct submit button was clicked
@@ -26,14 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) { // Chec
     // Basic validation (you might want more robust validation)
     if (empty($name) || empty($email) || empty($staff_id) || empty($password) || empty($role_text)) {
         $_SESSION['error_message'] = "กรุณากรอกข้อมูลให้ครบถ้วน";
-        header("Location: ../admin/21258363_add_admin.php"); // Redirect back to the form (using add_admin.php as the form page)
+        header("Location: /admin/21258363_add_admin.php"); // Redirect back to the form (using add_admin.php as the form page)
         exit();
     }
 
     // Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['error_message'] = "รูปแบบอีเมลไม่ถูกต้อง";
-        header("Location: ../admin/a21258363_add_admin.php"); // Redirect back to the form
+        header("Location: /admin/a21258363_add_admin.php"); // Redirect back to the form
         exit();
     }
 
@@ -48,14 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) { // Chec
             $_SESSION['error_message'] = "อีเมลหรือรหัสเจ้าหน้าที่/อาจารย์นี้มีอยู่ในระบบแล้ว"; // Updated error message
             $stmt_check->close();
             $conn->close();
-            header("Location: ../admin/21258363_add_admin.php"); // Redirect back to the form
+            header("Location: /admin/21258363_add_admin.php"); // Redirect back to the form
             exit();
         }
         $stmt_check->close();
     } else {
          $_SESSION['error_message'] = "เกิดข้อผิดพลาดในการตรวจสอบข้อมูลซ้ำ: " . $conn->error;
          $conn->close();
-         header("Location: ../admin/21258363_add_admin.php"); // Redirect back to the form
+         header("Location: /admin/21258363_add_admin.php"); // Redirect back to the form
          exit();
     }
 
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) { // Chec
     } else {
         // Handle invalid role value if necessary
         $_SESSION['error_message'] = "บทบาทที่เลือกไม่ถูกต้อง";
-        header("Location: ../admin/21258363_add_admin.php"); // Redirect back to the form
+        header("Location: /admin/21258363_add_admin.php"); // Redirect back to the form
         exit();
     }
 
@@ -91,12 +91,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) { // Chec
         if ($stmt->execute()) {
             // Insertion successful
             $_SESSION['success_message'] = "เพิ่มข้อมูลผู้ใช้สำเร็จแล้ว"; // Updated success message
-            header("Location: ../admin/21258363_add_admin.php"); // Redirect back to the form with success message
+            header("Location: /admin/21258363_add_admin.php"); // Redirect back to the form with success message
             exit();
         } else {
             // Error during insertion
             $_SESSION['error_message'] = "เกิดข้อผิดพลาดในการเพิ่มข้อมูล: " . $stmt->error;
-            header("Location: ../admin/21258363_add_admin.php"); // Redirect back with error message
+            header("Location: /admin/21258363_add_admin.php"); // Redirect back with error message
             exit();
         }
 
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) { // Chec
     } else {
         // Error preparing the statement
         $_SESSION['error_message'] = "เกิดข้อผิดพลาดในการเตรียมคำสั่งฐานข้อมูล: " . $conn->error;
-        header("Location: ../admin/21258363_add_admin.php"); // Redirect back with error message
+        header("Location: /admin/21258363_add_admin.php"); // Redirect back with error message
         exit();
     }
 
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) { // Chec
 } else {
     // If accessed without POST method or submit button not clicked
     $_SESSION['error_message'] = "การเข้าถึงไม่ถูกต้อง";
-    header("Location: ../admin/admin_dashboard.php"); // Redirect to admin dashboard (or an error page)
+    header("Location: /admin/admin_dashboard.php"); // Redirect to admin dashboard (or an error page)
     exit();
 }
 ?>

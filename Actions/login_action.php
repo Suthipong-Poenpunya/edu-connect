@@ -1,5 +1,5 @@
 <?php
-include ('../config/db.php');
+include ('/config/db.php');
 
 if (!isset($conn)) {
     die("Database connection error.");
@@ -24,11 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             session_start(); // **ตรวจสอบให้แน่ใจว่า session_start() อยู่ที่นี่**
             $_SESSION['student_code'] = $user['student_code']; // เปลี่ยนเป็น 'student_code'
             $_SESSION['user_id'] = $user['id']; // เก็บ user_id ด้วย
-            header("Location: ../Public/dashboard.php");
+            header("Location: /Public/dashboard.php");
             exit();
         } else {
             echo "Incorrect password";
-            header("Location: ../Public/login.php?error=Incorrect password");
+            header("Location: /Public/login.php?error=Incorrect password");
         }
     } else {
         echo "User not found";
