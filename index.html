@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other Page</title>
+</head>
+<body>
+
+    <h1>Hello World</h1>
+
+    <?php
+        // Use include to fetch the file
+    include '../public/index.php';
+
+        // Or use require, which will throw a critical error if the file is not found
+        require '../public/index.php';
+    ?>
+
+    <p>Footer content of another page</p>
+
+</body>
+</html>
