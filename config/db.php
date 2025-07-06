@@ -1,20 +1,15 @@
 <?php
-$servername = "tcp:suthipong.database.windows.net,1433"; // คัดลอกมาจาก Azure Portal
-$username = "educonn"; // คัดลอกมาจาก Azure Portal (ต้องมี @servername)
-$password = "@Suthipong555"; // รหัสผ่านที่คุณตั้งไว้
-$dbname = "edu e-service"; // ชื่อฐานข้อมูลที่คุณสร้างไว้ใน MySQL Server
-
+$con = mysqli_init();
+mysqli_ssl_set($con,NULL,NULL, "{path to CA cert}", NULL, NULL);
+mysqli_real_connect($conn, "edu-cuconnect-server.mysql.database.azure.com", "gdpgpjwnrd", "@Suthipong555", "edu e-service", 3306, MYSQLI_CLIENT_SSL);
 // สำหรับ Azure Database for MySQL Flexible Server มักจะต้องใช้ SSL
 // คุณอาจจะต้องดาวน์โหลด SSL certificate (BaltimoreCyberTrustRoot.crt.pem)
 // และระบุ path ในโค้ดด้วย
 // $ssl_ca = "/path/to/your/cert/BaltimoreCyberTrustRoot.crt.pem"; // เปลี่ยน path ให้ถูกต้อง
-
-// สร้างการเชื่อมต่อ
-$conn = mysqli_init();
-// หากต้องการใช้ SSL (แนะนำสำหรับ Azure Database for MySQL)
-// mysqli_ssl_set($conn, NULL, NULL, $ssl_ca, NULL, NULL);
-$conn_success = mysqli_real_connect($conn, $servername, $username, $password, $dbname, 3306, MYSQLI_CLIENT_SSL); // ถ้าไม่ใช้ SSL ให้ลบ MYSQLI_CLIENT_SSL ออก
-
+$host = "edu-cuconnect-server.mysql.database.azure.com"; // ชื่อโฮสต์ของ Azure MySQL
+$username = "gdpgpjwnrd"; // ชื่อผู้ใช้ 
+$password = "@Suthipong555"; // รหัสผ่าน
+$database = "edu e-service"; // ชื่อฐานข้อมูล
 if (!$conn_success) {
     die("Connection failed: " . mysqli_connect_error());
 }
