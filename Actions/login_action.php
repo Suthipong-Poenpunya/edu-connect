@@ -1,5 +1,5 @@
 <?php
-include ('/home/site/wwwroot/config/db.php');
+include ('/config/db.php');
 
 if (!isset($conn)) {
     die("Database connection error.");
