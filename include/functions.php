@@ -1,14 +1,16 @@
 <?php
-$con = mysqli_init();
-mysqli_ssl_set($con,NULL,NULL, "{path to CA cert}", NULL, NULL);
-mysqli_real_connect($conn, "edu-cuconnect-server.mysql.database.azure.com", "gdpgpjwnrd", "@Suthipong555", "edu e-service", 3306, MYSQLI_CLIENT_SSL);
-// ... โค้ด PHP ของคุณที่ใช้งาน $conn ...
+$servername = "localhost";
+$username = "root";
+$password = "@Suthipong555";
+$dbname = "edu e-service";
 
-// ปิดการเชื่อมต่อเมื่อใช้งานเสร็จ
-// mysqli_close($conn);
-// ตั้งค่า charset เป็น utf8mb4 เพื่อรองรับภาษาไทยและอีโมจิ
-$conn->set_charset("utf8mb4");
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
 
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 function connectDB()
 {
     global $host, $user, $password, $database, $conn; // เปลี่ยน $username เป็น $user
