@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Firebase Test</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <h1>Simple Test</h1>
+    <button onclick="testWrite()">Test Write</button>
+    <button onclick="testRead()">Test Read</button>
+    <div id="result"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnZ-sh1RhmND1_N_drLOi9uL4KUdFpB0Q",
+            authDomain: "edu-connect-a8315.firebaseapp.com",
+            projectId: "edu-connect-a8315",
+            storageBucket: "edu-connect-a8315.firebasestorage.app",
+            messagingSenderId: "33042525923",
+            appId: "1:33042525923:web:be51fde4766b06fd3a9fd6",
+            measurementId: "G-QGG90GGG3Y"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function testWrite() {
+            try {
+                await db.collection('test').doc('test1').set({
+                    message: 'Hello World',
+                    timestamp: new Date()
+                });
+                document.getElementById('result').innerHTML = '✅ Write successful!';
+            } catch (error) {
+                document.getElementById('result').innerHTML = `❌ Write failed: ${error.message}`;
+            }
+        }
+
+        async function testRead() {
+            try {
+                const doc = await db.collection('test').doc('test1').get();
+                if (doc.exists) {
+                    document.getElementById('result').innerHTML = `✅ Read successful: ${JSON.stringify(doc.data())}`;
+                } else {
+                    document.getElementById('result').innerHTML = '❌ Document not found';
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `❌ Read failed: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
