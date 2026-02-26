@@ -439,15 +439,15 @@
             
             let html = '';
             registeredCourses.forEach(courseId => {
-                const course = allCourses.find(c => c.id === courseId);
+                const course = allCourses.find(c => c.courseCode === courseId);
                 if (course) {
                     html += `
                         <div class="registered-item">
                             <div>
-                                <strong>${course.course_code}</strong> - ${course.course_name}
+                                <strong>${course.courseCode}</strong> - ${course.courseName}
                                 <br><small>${course.day} ${course.time}</small>
                             </div>
-                            <button class="btn-withdraw" onclick="withdrawCourse('${course.id}')">ถอนรายวิชา</button>
+                            <button class="btn-withdraw" onclick="withdrawCourse('${course.courseCode}')">ถอนรายวิชา</button>
                         </div>
                     `;
                 }
@@ -461,8 +461,8 @@
             courseGrid.innerHTML = '';
             
             courses.forEach(course => {
-                const isRegistered = registeredCourses.includes(course.id);
-                const isFull = course.available_seats <= 0;
+                const isRegistered = registeredCourses.includes(course.courseCode);
+                const isFull = (course.availableSeats - (course.enrolledStudents || 0)) <= 0;
                 const isDisabled = isRegistered || isFull;
                 
                 const courseCard = document.createElement('div');
@@ -470,10 +470,10 @@
                 
                 courseCard.innerHTML = `
                     <div class="course-header">
-                        <span class="course-code">${course.course_code}</span>
+                        <span class="course-code">${course.courseCode}</span>
                         <span class="course-credits">${course.credits} หน่วยกิต</span>
                     </div>
-                    <div class="course-title">${course.course_name}</div>
+                    <div class="course-title">${course.courseName}</div>
                     <div class="course-info">
                         <p><strong>ภาคการศึกษา:</strong> ${course.semester}</p>
                         <p><strong>วัน-เวลา:</strong> ${course.day} ${course.time}</p>
@@ -482,13 +482,13 @@
                     <div class="course-seats">
                         <div class="seats-info">
                             <strong>ที่นั่งว่าง:</strong> 
-                            <span class="${course.available_seats > 0 ? 'seats-available' : 'seats-full'}">
-                                ${course.available_seats}/${course.total_seats}
+                            <span class="${course.availableSeats > 0 ? 'seats-available' : 'seats-full'}">
+                                ${course.availableSeats - (course.enrolledStudents || 0)}/${course.availableSeats}
                             </span>
                         </div>
                     </div>
                     <button class="${isRegistered ? 'btn-registered' : isFull ? 'btn-disabled' : 'btn-register'}" 
-                            onclick="${isRegistered ? '' : isFull ? '' : `registerCourse('${course.id}')`}"
+                            onclick="${isRegistered ? '' : isFull ? '' : `registerCourse('${course.courseCode}')`}"
                             ${isDisabled ? 'disabled' : ''}>
                         ${isRegistered ? '✅ ลงทะเบียนแล้ว' : isFull ? '❌ เต็มแล้ว' : '📝 ลงทะเบียน'}
                     </button>
@@ -507,8 +507,8 @@
                 const matchDay = !dayFilter || course.day === dayFilter;
                 const matchCredits = !creditsFilter || course.credits.toString() === creditsFilter;
                 const matchSearch = !searchFilter || 
-                    course.course_name.toLowerCase().includes(searchFilter) ||
-                    course.course_code.toLowerCase().includes(searchFilter);
+                    course.courseName.toLowerCase().includes(searchFilter) ||
+                    course.courseCode.toLowerCase().includes(searchFilter);
                 
                 return matchDay && matchCredits && matchSearch;
             });
@@ -518,22 +518,22 @@
 
         async function registerCourse(courseId) {
             try {
-                const course = allCourses.find(c => c.id === courseId);
+                const course = allCourses.find(c => c.courseCode === courseId);
                 
-                if (course.available_seats <= 0) {
+                if ((course.availableSeats - (course.enrolledStudents || 0)) <= 0) {
                     showMessage('รายวิชานี้เต็มแล้ว', 'error');
                     return;
                 }
                 
                 // Check for time conflicts
                 const conflictCourse = allCourses.find(c => 
-                    registeredCourses.includes(c.id) && 
+                    registeredCourses.includes(c.courseCode) && 
                     c.day === course.day && 
                     c.time === course.time
                 );
                 
                 if (conflictCourse) {
-                    showMessage(`ทับซ้องกับรายวิชา ${conflictCourse.course_code}`, 'error');
+                    showMessage(`ทับซ้อนกับรายวิชา ${conflictCourse.courseCode}`, 'error');
                     return;
                 }
                 
@@ -548,18 +548,18 @@
                 
                 // Update available seats
                 await db.collection('courses').doc(courseId).update({
-                    available_seats: course.available_seats - 1
+                    enrolledStudents: (course.enrolledStudents || 0) + 1
                 });
                 
                 // Update local data
                 registeredCourses.push(courseId);
-                course.available_seats--;
+                course.enrolledStudents = (course.enrolledStudents || 0) + 1;
                 
                 // Refresh displays
                 displayCourses(allCourses);
                 displayRegisteredCourses();
                 
-                showMessage(`ลงทะเบียน ${course.course_code} สำเร็จ!`, 'success');
+                showMessage(`ลงทะเบียน ${course.courseName} สำเร็จ!`, 'success');
                 
             } catch (error) {
                 console.error('Error registering course:', error);
@@ -573,7 +573,7 @@
                     return;
                 }
                 
-                const course = allCourses.find(c => c.id === courseId);
+                const course = allCourses.find(c => c.courseCode === courseId);
                 
                 // Find and delete registration
                 const registrationsSnapshot = await db.collection('registrations')
@@ -588,20 +588,20 @@
                 
                 // Update available seats
                 batch.update(db.collection('courses').doc(courseId), {
-                    available_seats: course.available_seats + 1
+                    enrolledStudents: Math.max(0, (course.enrolledStudents || 0) - 1)
                 });
                 
                 await batch.commit();
                 
                 // Update local data
                 registeredCourses = registeredCourses.filter(id => id !== courseId);
-                course.available_seats++;
+                course.enrolledStudents = Math.max(0, (course.enrolledStudents || 0) - 1);
                 
                 // Refresh displays
                 displayCourses(allCourses);
                 displayRegisteredCourses();
                 
-                showMessage(`ถอนรายวิชา ${course.course_code} สำเร็จ!`, 'success');
+                showMessage(`ถอนรายวิชา ${course.courseName} สำเร็จ!`, 'success');
                 
             } catch (error) {
                 console.error('Error withdrawing course:', error);
