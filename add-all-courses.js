@@ -72,7 +72,15 @@ async function addAllCoursesToFirestore() {
     console.log('🚀 Adding all courses to Firestore...');
     
     try {
+        // Initialize Firebase with no cache
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.firestore();
+        
+        // Disable cache to avoid IO errors
+        db.settings({
+            cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+        });
         
         for (const course of allCourses) {
             await db.collection('courses').doc(course.courseCode).set(course);
@@ -92,7 +100,16 @@ async function verifyCourses() {
     console.log('🔍 Verifying courses in Firestore...');
     
     try {
+        // Initialize Firebase with no cache
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.firestore();
+        
+        // Disable cache to avoid IO errors
+        db.settings({
+            cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+        });
+        
         const coursesSnapshot = await db.collection('courses').get();
         
         console.log(`📊 Total courses in Firestore: ${coursesSnapshot.size}`);
