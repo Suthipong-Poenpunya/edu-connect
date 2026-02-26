@@ -16,8 +16,12 @@
             margin: 0;
             padding: 0;
         }
+        .logo {
+            height: 40px;
+            margin-right: 10px;
+        }
         .navbar {
-            background-color: #F05023;
+            background-color: rgb(222, 92, 142);
             color: white;
             padding: 15px 0;
         }
@@ -147,7 +151,10 @@
     <nav class="navbar">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center w-100">
-                <div class="navbar-brand">EDU CU Connect - Admin</div>
+                <div class="d-flex align-items-center">
+                    <img src="images/Chula-LOGO.png" alt="Chula Logo" class="logo">
+                    <div class="navbar-brand">EDU CU Connect</div>
+                </div>
                 <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
             </div>
         </div>
@@ -182,13 +189,18 @@
             <div class="menu-card" onclick="navigateTo('students')">
                 <h3>จัดการนิสิต</h3>
                 <p>ดูและจัดการข้อมูลนิสิตทั้งหมด</p>
-                <a href="#" class="btn-menu" onclick="showStudents()">ดูนิสิตทั้งหมด</a>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="showStudents()">ดูนิสิตทั้งหมด</button>
+                    <button class="btn btn-primary" onclick="window.open('manage-courses.html', '_blank')">จัดการรายวิชา</button>
+                    <button class="btn btn-primary" onclick="showRegistrations()">ดูการลงทะเบียน</button>
+                    <button class="btn btn-primary" onclick="showReports()">รายงานและสถิติ</button>
+                </div>
             </div>
             
             <div class="menu-card" onclick="navigateTo('courses')">
                 <h3>จัดการรายวิชา</h3>
                 <p>เพิ่ม แก้ไข และลบรายวิชา</p>
-                <a href="#" class="btn-menu" onclick="showCourses()">จัดการรายวิชา</a>
+                <a href="manage-courses.html" class="btn-menu">จัดการรายวิชา</a>
             </div>
             
             <div class="menu-card" onclick="navigateTo('registrations')">
@@ -440,36 +452,72 @@
         }
 
         function showRegistrations() {
-            // TODO: แสดงหน้าการลงทะเบียน
-            console.log('Show registrations');
+            // แสดงหน้าการลงทะเบียน
+            window.open('register_courses.html', '_blank');
         }
 
         function showReports() {
-            // TODO: แสดงหน้ารายงาน
-            console.log('Show reports');
+            // แสดงหน้ารายงาน
+            alert('รายงานและสถิติกำลังพัฒนา...');
         }
 
         function editStudent(studentCode) {
-            // TODO: เปิดหน้าแก้ไขข้อมูลนิสิต
-            console.log(`Edit student: ${studentCode}`);
+            // เปิดหน้าแก้ไขข้อมูลนิสิต
+            window.open(`profile.html?student=${studentCode}&admin=true`, '_blank');
         }
 
         function deleteStudent(studentCode) {
-            if (confirm(`คุณต้องการลบนิสิต ${studentCode} หรือไม่?`)) {
-                // TODO: ลบข้อมูลนิสิต
-                console.log(`Delete student: ${studentCode}`);
+            if (confirm(`คุณต้องการลบนิสิต ${studentCode} หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้`)) {
+                deleteStudentFromFirestore(studentCode);
             }
         }
 
         function editCourse(courseId) {
-            // TODO: เปิดหน้าแก้ไขรายวิชา
-            console.log(`Edit course: ${courseId}`);
+            // เปิดหน้าแก้ไขรายวิชา
+            const courseName = prompt('กรุณากรอกชื่อรายวิชาใหม่:');
+            if (courseName && courseName.trim()) {
+                updateCourseName(courseId, courseName.trim());
+            }
         }
 
         function deleteCourse(courseId) {
-            if (confirm(`คุณต้องการลบรายวิชา ${courseId} หรือไม่?`)) {
-                // TODO: ลบข้อมูลรายวิชา
-                console.log(`Delete course: ${courseId}`);
+            if (confirm(`คุณต้องการลบรายวิชา ${courseId} หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้`)) {
+                deleteCourseFromFirestore(courseId);
+            }
+        }
+
+        async function deleteStudentFromFirestore(studentCode) {
+            try {
+                await db.collection('students').doc(studentCode).delete();
+                alert(`ลบนิสิต ${studentCode} สำเร็จแล้ว`);
+                loadStudents(); // โหลดข้อมูลใหม่
+            } catch (error) {
+                console.error('Error deleting student:', error);
+                alert('เกิดข้อผิดพลาดในการลบข้อมูลนิสิต');
+            }
+        }
+
+        async function deleteCourseFromFirestore(courseId) {
+            try {
+                await db.collection('courses').doc(courseId).delete();
+                alert(`ลบรายวิชา ${courseId} สำเร็จแล้ว`);
+                loadCourses(); // โหลดข้อมูลใหม่
+            } catch (error) {
+                console.error('Error deleting course:', error);
+                alert('เกิดข้อผิดพลาดในการลบข้อมูลรายวิชา');
+            }
+        }
+
+        async function updateCourseName(courseId, newName) {
+            try {
+                await db.collection('courses').doc(courseId).update({
+                    courseName: newName
+                });
+                alert(`อัปเดตชื่อรายวิชาสำเร็จแล้ว`);
+                loadCourses(); // โหลดข้อมูลใหม่
+            } catch (error) {
+                console.error('Error updating course:', error);
+                alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูลรายวิชา');
             }
         }
 
