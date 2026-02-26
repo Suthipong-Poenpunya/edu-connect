@@ -96,7 +96,7 @@
     <div class="container">
     <div class="logo-container">
     <h1>ยินดีต้อนรับ</h1>
-        <form name="form 1" method="post" action="\Actions\login_action.php">
+        <form name="form 1" method="post" action="..\Actions\login_action.php">
             <div class="form-group">
                 <label for="student_code">รหัสนิสิต</label>
                 <input class="form-control" name="student_code" type="text" id="student_code" placeholder="กรุณาป้อนรหัสนิสิต">

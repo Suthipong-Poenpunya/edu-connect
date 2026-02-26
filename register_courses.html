@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนรายวิชา</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .logo {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .navbar {
+            background-color: rgb(222, 92, 142);
+            color: white;
+            padding: 15px 0;
+        }
+        .navbar-brand {
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .page-header {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        h1 {
+            color: rgb(222, 92, 142);
+            margin-bottom: 20px;
+        }
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .course-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .course-card:hover {
+            transform: translateY(-5px);
+            border-color: rgb(222, 92, 142);
+        }
+        .course-card.registered {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        .course-card.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .course-code {
+            background-color: rgb(222, 92, 142);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .course-credits {
+            background-color: #6c757d;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .course-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .course-info {
+            margin-bottom: 15px;
+        }
+        .course-info p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .course-description {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .course-seats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .seats-info {
+            font-size: 0.9em;
+        }
+        .seats-available {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .seats-full {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .btn-register {
+            background-color: rgb(222, 92, 142);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .btn-register:hover {
+            background-color: rgb(200, 80, 130);
+        }
+        .btn-primary {
+            background-color: rgb(222, 92, 142);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color:rgb(200, 80, 130);
+        }
+        .btn-registered {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 100%;
+            cursor: default;
+        }
+        .btn-disabled {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 100%;
+            cursor: not-allowed;
+        }
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .success-message {
+            color: green;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .filter-section {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .filter-section h3 {
+            color: rgb(222, 92, 142);
+            margin-bottom: 15px;
+        }
+        .registered-courses {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .registered-courses h3 {
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+        .registered-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8fff9;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .btn-withdraw {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+        .btn-withdraw:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex align-items-center">
+                    <img src="images/Chula-LOGO.png" alt="Chula Logo" class="logo">
+                    <div class="navbar-brand">EDU CU Connect</div>
+                </div>
+                <button class="btn btn-secondary" onclick="logout()">ออกจากระบบ</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="dashboard.html" class="back-btn">← กลับไปหน้าหลัก</a>
+        
+        <div class="page-header">
+            <h1>ลงทะเบียนรายวิชา</h1>
+            <div id="userInfo">กำลังโหลดข้อมูล...</div>
+        </div>
+
+        <div class="registered-courses">
+            <h3>รายวิชาที่ลงทะเบียนแล้ว</h3>
+            <div id="registeredCourses">
+                <div class="loading">กำลังโหลดข้อมูล...</div>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <h3>กรองรายวิชา</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="dayFilter">วันที่เรียน:</label>
+                    <select class="form-control" id="dayFilter" onchange="filterCourses()">
+                        <option value="">ทุกวัน</option>
+                        <option value="MO">จันทร์</option>
+                        <option value="TU">อังคาร</option>
+                        <option value="WE">พุธ</option>
+                        <option value="TH">พฤหัส</option>
+                        <option value="FR">ศุกร์</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="creditsFilter">หน่วยกิต:</label>
+                    <select class="form-control" id="creditsFilter" onchange="filterCourses()">
+                        <option value="">ทุกหน่วยกิต</option>
+                        <option value="1">1 หน่วยกิต</option>
+                        <option value="2">2 หน่วยกิต</option>
+                        <option value="3">3 หน่วยกิต</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="searchFilter">ค้นหา:</label>
+                    <input type="text" class="form-control" id="searchFilter" placeholder="ค้นหารายวิชา..." onkeyup="filterCourses()">
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">กำลังโหลดข้อมูลรายวิชา...</div>
+        <div class="course-grid" id="courseGrid" style="display: none;">
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnZ-sh1RhmND1_N_drLOi9uL4KUdFpB0Q",
+            authDomain: "edu-connect-a8315.firebaseapp.com",
+            projectId: "edu-connect-a8315",
+            storageBucket: "edu-connect-a8315.firebasestorage.app",
+            messagingSenderId: "33042525923",
+            appId: "1:33042525923:web:be51fde4766b06fd3a9fd6",
+            measurementId: "G-QGG90GGG3Y"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let allCourses = [];
+        let registeredCourses = [];
+
+        // Check authentication and load data
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const currentUserData = sessionStorage.getItem('currentUser');
+                if (currentUserData) {
+                    currentUser = JSON.parse(currentUserData);
+                    loadUserData();
+                    await loadCourses();
+                    await loadRegisteredCourses();
+                } else {
+                    // Get user data from Firestore
+                    try {
+                        const studentCode = user.email.split('@')[0];
+                        const userDoc = await db.collection('students').doc(studentCode).get();
+                        
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            const sessionData = {
+                                studentCode: studentCode,
+                                name: userData.name,
+                                email: user.email,
+                                role: 'student'
+                            };
+                            sessionStorage.setItem('currentUser', JSON.stringify(sessionData));
+                            currentUser = sessionData;
+                            loadUserData();
+                            await loadCourses();
+                            await loadRegisteredCourses();
+                        } else {
+                            console.error('User document not found');
+                            logout();
+                        }
+                    } catch (error) {
+                        console.error('Error getting user data:', error);
+                        logout();
+                    }
+                }
+            } else {
+                // Not logged in, redirect to login page
+                window.location.href = 'login.html';
+            }
+        });
+
+        function loadUserData() {
+            document.getElementById('userInfo').innerHTML = `
+                <p><strong>รหัสนิสิต:</strong> ${currentUser.studentCode}</p>
+                <p><strong>ชื่อ:</strong> ${currentUser.name}</p>
+            `;
+        }
+
+        async function loadCourses() {
+            try {
+                const coursesSnapshot = await db.collection('courses').get();
+                allCourses = [];
+                
+                coursesSnapshot.forEach(doc => {
+                    const course = doc.data();
+                    course.id = doc.id;
+                    allCourses.push(course);
+                });
+                
+                displayCourses(allCourses);
+                
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                document.getElementById('errorMessage').textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูลรายวิชา';
+                document.getElementById('errorMessage').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('courseGrid').style.display = 'grid';
+            }
+        }
+
+        async function loadRegisteredCourses() {
+            try {
+                const registrationsSnapshot = await db.collection('registrations')
+                    .where('studentCode', '==', currentUser.studentCode)
+                    .where('semester', '==', '2/2567')
+                    .get();
+                
+                registeredCourses = [];
+                
+                registrationsSnapshot.forEach(doc => {
+                    const registration = doc.data();
+                    registeredCourses.push(registration.courseId);
+                });
+                
+                displayRegisteredCourses();
+                
+            } catch (error) {
+                console.error('Error loading registered courses:', error);
+            }
+        }
+
+        function displayRegisteredCourses() {
+            const container = document.getElementById('registeredCourses');
+            
+            if (registeredCourses.length === 0) {
+                container.innerHTML = '<p>ยังไม่ได้ลงทะเบียนรายวิชาใดๆ</p>';
+                return;
+            }
+            
+            let html = '';
+            registeredCourses.forEach(courseId => {
+                const course = allCourses.find(c => c.courseCode === courseId);
+                if (course) {
+                    html += `
+                        <div class="registered-item">
+                            <div>
+                                <strong>${course.courseCode}</strong> - ${course.courseName}
+                                <br><small>${course.day} ${course.time}</small>
+                            </div>
+                            <button class="btn-withdraw" onclick="withdrawCourse('${course.courseCode}')">ถอนรายวิชา</button>
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function displayCourses(courses) {
+            const courseGrid = document.getElementById('courseGrid');
+            courseGrid.innerHTML = '';
+            
+            courses.forEach(course => {
+                const isRegistered = registeredCourses.includes(course.courseCode);
+                const isFull = (course.availableSeats - (course.enrolledStudents || 0)) <= 0;
+                const isDisabled = isRegistered || isFull;
+                
+                const courseCard = document.createElement('div');
+                courseCard.className = `course-card ${isRegistered ? 'registered' : ''} ${isFull ? 'disabled' : ''}`;
+                
+                courseCard.innerHTML = `
+                    <div class="course-header">
+                        <span class="course-code">${course.courseCode}</span>
+                        <span class="course-credits">${course.credits} หน่วยกิต</span>
+                    </div>
+                    <div class="course-title">${course.courseName}</div>
+                    <div class="course-info">
+                        <p><strong>ภาคการศึกษา:</strong> ${course.semester}</p>
+                        <p><strong>วัน-เวลา:</strong> ${course.day} ${course.time}</p>
+                    </div>
+                    <div class="course-description">${course.description}</div>
+                    <div class="course-seats">
+                        <div class="seats-info">
+                            <strong>ที่นั่งว่าง:</strong> 
+                            <span class="${course.availableSeats > 0 ? 'seats-available' : 'seats-full'}">
+                                ${course.availableSeats - (course.enrolledStudents || 0)}/${course.availableSeats}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="${isRegistered ? 'btn-registered' : isFull ? 'btn-disabled' : 'btn-register'}" 
+                            onclick="${isRegistered ? '' : isFull ? '' : `registerCourse('${course.courseCode}')`}"
+                            ${isDisabled ? 'disabled' : ''}>
+                        ${isRegistered ? '✅ ลงทะเบียนแล้ว' : isFull ? '❌ เต็มแล้ว' : '📝 ลงทะเบียน'}
+                    </button>
+                `;
+                
+                courseGrid.appendChild(courseCard);
+            });
+        }
+
+        function filterCourses() {
+            const dayFilter = document.getElementById('dayFilter').value;
+            const creditsFilter = document.getElementById('creditsFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let filteredCourses = allCourses.filter(course => {
+                const matchDay = !dayFilter || course.day === dayFilter;
+                const matchCredits = !creditsFilter || course.credits.toString() === creditsFilter;
+                const matchSearch = !searchFilter || 
+                    course.courseName.toLowerCase().includes(searchFilter) ||
+                    course.courseCode.toLowerCase().includes(searchFilter);
+                
+                return matchDay && matchCredits && matchSearch;
+            });
+            
+            displayCourses(filteredCourses);
+        }
+
+        async function registerCourse(courseId) {
+            try {
+                const course = allCourses.find(c => c.courseCode === courseId);
+                
+                if ((course.availableSeats - (course.enrolledStudents || 0)) <= 0) {
+                    showMessage('รายวิชานี้เต็มแล้ว', 'error');
+                    return;
+                }
+                
+                // Check for time conflicts
+                const conflictCourse = allCourses.find(c => 
+                    registeredCourses.includes(c.courseCode) && 
+                    c.day === course.day && 
+                    c.time === course.time
+                );
+                
+                if (conflictCourse) {
+                    showMessage(`ทับซ้อนกับรายวิชา ${conflictCourse.courseCode}`, 'error');
+                    return;
+                }
+                
+                // Add registration
+                await db.collection('registrations').add({
+                    studentCode: currentUser.studentCode,
+                    courseId: courseId,
+                    semester: '2/2567',
+                    registered_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'registered'
+                });
+                
+                // Update available seats
+                await db.collection('courses').doc(courseId).update({
+                    enrolledStudents: (course.enrolledStudents || 0) + 1
+                });
+                
+                // Update local data
+                registeredCourses.push(courseId);
+                course.enrolledStudents = (course.enrolledStudents || 0) + 1;
+                
+                // Refresh displays
+                displayCourses(allCourses);
+                displayRegisteredCourses();
+                
+                showMessage(`ลงทะเบียน ${course.courseName} สำเร็จ!`, 'success');
+                
+            } catch (error) {
+                console.error('Error registering course:', error);
+                showMessage('เกิดข้อผิดพลาดในการลงทะเบียน', 'error');
+            }
+        }
+
+        async function withdrawCourse(courseId) {
+            try {
+                if (!confirm('คุณต้องการถอนรายวิชานี้หรือไม่?')) {
+                    return;
+                }
+                
+                const course = allCourses.find(c => c.courseCode === courseId);
+                
+                // Find and delete registration
+                const registrationsSnapshot = await db.collection('registrations')
+                    .where('studentCode', '==', currentUser.studentCode)
+                    .where('courseId', '==', courseId)
+                    .get();
+                
+                const batch = db.batch();
+                registrationsSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                
+                // Update available seats
+                batch.update(db.collection('courses').doc(courseId), {
+                    enrolledStudents: Math.max(0, (course.enrolledStudents || 0) - 1)
+                });
+                
+                await batch.commit();
+                
+                // Update local data
+                registeredCourses = registeredCourses.filter(id => id !== courseId);
+                course.enrolledStudents = Math.max(0, (course.enrolledStudents || 0) - 1);
+                
+                // Refresh displays
+                displayCourses(allCourses);
+                displayRegisteredCourses();
+                
+                showMessage(`ถอนรายวิชา ${course.courseName} สำเร็จ!`, 'success');
+                
+            } catch (error) {
+                console.error('Error withdrawing course:', error);
+                showMessage('เกิดข้อผิดพลาดในการถอนรายวิชา', 'error');
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageElement = document.getElementById(type === 'success' ? 'successMessage' : 'errorMessage');
+            messageElement.textContent = message;
+            messageElement.style.display = 'block';
+            
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
+</body>
+</html>

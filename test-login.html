@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Login</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 15px; margin: 5px; }
+        .result { margin: 10px 0; padding: 10px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Firebase Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Firebase Connection</h2>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connectionResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Authentication</h2>
+        <button onclick="testAuth()">Test Auth with Sample User</button>
+        <div id="authResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Firestore</h2>
+        <button onclick="testFirestore()">Test Firestore Read</button>
+        <div id="firestoreResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Create Sample Data</h2>
+        <button onclick="createSampleData()">Create Sample Data</button>
+        <div id="createResult"></div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnZ-sh1RhmND1_N_drLOi9uL4KUdFpB0Q",
+            authDomain: "edu-connect-a8315.firebaseapp.com",
+            projectId: "edu-connect-a8315",
+            storageBucket: "edu-connect-a8315.firebasestorage.app",
+            messagingSenderId: "33042525923",
+            appId: "1:33042525923:web:be51fde4766b06fd3a9fd6",
+            measurementId: "G-QGG90GGG3Y"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        function showResult(elementId, message, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        }
+
+        function testConnection() {
+            try {
+                if (firebase.apps.length > 0) {
+                    showResult('connectionResult', '✅ Firebase initialized successfully!');
+                } else {
+                    showResult('connectionResult', '❌ Firebase not initialized', false);
+                }
+            } catch (error) {
+                showResult('connectionResult', `❌ Error: ${error.message}`, false);
+            }
+        }
+
+        async function testAuth() {
+            try {
+                showResult('authResult', '🔄 Testing authentication...');
+                
+                // Try to sign in with sample user
+                const userCredential = await auth.signInWithEmailAndPassword('64000001@chula.ac.th', 'password123');
+                const user = userCredential.user;
+                
+                showResult('authResult', `✅ Auth successful! User: ${user.email}`);
+                
+                // Sign out after test
+                await auth.signOut();
+                
+            } catch (error) {
+                showResult('authResult', `❌ Auth failed: ${error.message}`, false);
+                
+                if (error.code === 'auth/user-not-found') {
+                    showResult('authResult', '❌ User not found. Please create user in Firebase Console first.', false);
+                } else if (error.code === 'auth/wrong-password') {
+                    showResult('authResult', '❌ Wrong password. Check user credentials.', false);
+                }
+            }
+        }
+
+        async function testFirestore() {
+            try {
+                showResult('firestoreResult', '🔄 Testing Firestore...');
+                
+                // Try to read from students collection
+                const doc = await db.collection('students').doc('64000001').get();
+                
+                if (doc.exists) {
+                    showResult('firestoreResult', `✅ Firestore read successful! Data: ${JSON.stringify(doc.data())}`);
+                } else {
+                    showResult('firestoreResult', '⚠️ Document not found. Need to create sample data.', false);
+                }
+                
+            } catch (error) {
+                showResult('firestoreResult', `❌ Firestore error: ${error.message}`, false);
+            }
+        }
+
+        async function createSampleData() {
+            try {
+                showResult('createResult', '🔄 Creating sample data...');
+                
+                // Create sample student data
+                await db.collection('students').doc('64000001').set({
+                    student_code: '64000001',
+                    id_card: '1234567890123',
+                    prefix: 'นาย',
+                    name: 'สมชาย',
+                    surname: 'ใจดี',
+                    faculty: 'ครุศาสตร์',
+                    major: 'เทคโนโลยีการศึกษา',
+                    class: '1',
+                    address: '123 ถนนพระราม 4 เขตพญาไท กรุงเทพฯ 10400',
+                    phone: '0812345678',
+                    email: 'somchai@student.chula.ac.th',
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'active'
+                });
+
+                showResult('createResult', '✅ Sample data created successfully!');
+                
+            } catch (error) {
+                showResult('createResult', `❌ Create data error: ${error.message}`, false);
+            }
+        }
+
+        // Auto-test connection on load
+        window.onload = function() {
+            testConnection();
+        };
+    </script>
+</body>
+</html>

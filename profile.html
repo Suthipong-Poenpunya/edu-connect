@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ข้อมูลส่วนตัว</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: rgb(222, 92, 142);
+            color: white;
+            padding: 15px 0;
+        }
+        .logo {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .profile-image-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .profile-image-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgb(222, 92, 142);
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(222, 92, 142, 0.3);
+            transition: transform 0.3s ease;
+        }
+        .profile-image-preview:hover {
+            transform: scale(1.05);
+        }
+        .upload-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .upload-btn:hover {
+            background-color: #5a6268;
+        }
+        .navbar-brand {
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .profile-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: rgb(222, 92, 142);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .btn-primary {
+            background-color: rgb(222, 92, 142);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: rgb(222, 92, 142);
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            color: white;
+            margin-left: 10px;
+        }
+        .success-message {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex align-items-center">
+                    <img src="images/Chula-LOGO.png" alt="Chula Logo" class="logo">
+                    <div class="navbar-brand">EDU CU Connect</div>
+                </div>
+                <button class="btn btn-secondary" onclick="logout()">ออกจากระบบ</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="dashboard.html" class="back-btn">← กลับไปหน้าหลัก</a>
+        
+        <div class="profile-card">
+            <h1 id="pageTitle">ข้อมูลส่วนตัว</h1>
+            <div id="loading" class="loading">กำลังโหลดข้อมูล...</div>
+            <div id="profileContent" style="display: none;">
+                <div class="profile-image-section">
+                    <img id="profileImagePreview" src="images/student_image/default.png" alt="Profile Image" class="profile-image-preview">
+                    <br>
+                    <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="previewProfileImage(event)">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('profileImageInput').click()">
+                        📷 เปลี่ยนรูปโปรไฟล์
+                    </button>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_card">เลขบัตรประชาชน</label>
+                            <input type="text" class="form-control" id="id_card" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="prefix">คำนำหน้า</label>
+                            <select class="form-control" id="prefix" required>
+                                <option value="นาย">นาย</option>
+                                <option value="นาง">นาง</option>
+                                <option value="นางสาว">นางสาว</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="name">ชื่อ</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="surname">นามสกุล</label>
+                            <input type="text" class="form-control" id="surname" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="faculty">คณะ</label>
+                            <input type="text" class="form-control" id="faculty" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="major">สาขาวิชา</label>
+                            <select class="form-control" id="major" required>
+                                <option value="เทคโนโลยีการศึกษา">เทคโนโลยีการศึกษา</option>
+                                <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+                                <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+                                <option value="ภาษาอังกฤษ">ภาษาอังกฤษ</option>
+                                <option value="ไทย">ไทย</option>
+                                <option value="สังคมศึกษา">สังคมศึกษา</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="class">ชั้นปี</label>
+                            <select class="form-control" id="class" required>
+                                <option value="1">ปีที่ 1</option>
+                                <option value="2">ปีที่ 2</option>
+                                <option value="3">ปีที่ 3</option>
+                                <option value="4">ปีที่ 4</option>
+                                <option value="5">ปีที่ 5+</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">ที่อยู่</label>
+                    <textarea class="form-control" id="address" rows="3" required></textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="phone">เบอร์โทรศัพท์</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="email">อีเมล</label>
+                            <input type="email" class="form-control" id="email" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">ยกเลิก</button>
+                </div>
+            </form>
+            
+            <div class="success-message" id="successMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="loading" id="loading">กำลังบันทึกข้อมูล...</div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnZ-sh1RhmND1_N_drLOi9uL4KUdFpB0Q",
+            authDomain: "edu-connect-a8315.firebaseapp.com",
+            projectId: "edu-connect-a8315",
+            storageBucket: "edu-connect-a8315.firebasestorage.app",
+            messagingSenderId: "33042525923",
+            appId: "1:33042525923:web:be51fde4766b06fd3a9fd6",
+            measurementId: "G-QGG90GGG3Y"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let originalData = {};
+
+        // Check if admin mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdminMode = urlParams.get('admin') === 'true';
+        const targetStudent = urlParams.get('student');
+
+        // Check authentication and load data
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                if (isAdminMode && targetStudent) {
+                    // Admin mode - load target student data
+                    try {
+                        const userDoc = await db.collection('students').doc(targetStudent).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            const currentUser = {
+                                studentCode: targetStudent,
+                                name: userData.name,
+                                email: userData.email,
+                                role: 'admin'
+                            };
+                            loadProfileData();
+                        } else {
+                            alert('ไม่พบข้อมูลนิสิต');
+                            window.close();
+                        }
+                    } catch (error) {
+                        console.error('Error loading student data:', error);
+                        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                        window.close();
+                    }
+                } else {
+                    // Normal student mode
+                    const currentUserData = sessionStorage.getItem('currentUser');
+                    if (currentUserData) {
+                        const currentUser = JSON.parse(currentUserData);
+                        loadProfileData();
+                    } else {
+                        // Get user data from Firestore
+                        try {
+                            const studentCode = user.email.split('@')[0];
+                            const userDoc = await db.collection('students').doc(studentCode).get();
+                            
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                const sessionData = {
+                                    studentCode: studentCode,
+                                    name: userData.name,
+                                    email: user.email,
+                                    role: 'student'
+                                };
+                                sessionStorage.setItem('currentUser', JSON.stringify(sessionData));
+                                loadProfileData();
+                            } else {
+                                console.error('User document not found');
+                                logout();
+                            }
+                        } catch (error) {
+                            console.error('Error getting user data:', error);
+                            logout();
+                        }
+                    }
+                }
+            } else {
+                // Not logged in, redirect to login page
+                window.location.href = 'login.html';
+            }
+        });
+
+        async function loadProfileData() {
+            try {
+                const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+                const studentCode = currentUser.studentCode;
+                const userDoc = await db.collection('students').doc(studentCode).get();
+                
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    
+                    // Store original data for reset functionality
+                    originalData = {
+                        prefix: data.prefix || '',
+                        name: data.name || '',
+                        surname: data.surname || '',
+                        major: data.major || '',
+                        class: data.class || '',
+                        address: data.address || '',
+                        phone: data.phone || '',
+                        profileImage: data.profileImage || 'images/student_image/default.png'
+                    };
+                    
+                    // Fill form with existing data
+                    document.getElementById('student_code').value = data.student_code || '';
+                    document.getElementById('prefix').value = data.prefix || '';
+                    document.getElementById('name').value = data.name || '';
+                    document.getElementById('surname').value = data.surname || '';
+                    document.getElementById('id_card').value = data.id_card || '';
+                    document.getElementById('faculty').value = data.faculty || '';
+                    document.getElementById('major').value = data.major || '';
+                    document.getElementById('class').value = data.class || '';
+                    document.getElementById('address').value = data.address || '';
+                    document.getElementById('phone').value = data.phone || '';
+                    
+                    // Set profile image
+                    document.getElementById('profileImagePreview').src = data.profileImage || 'images/student_image/default.png';
+                    
+                    // Show form content
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('profileContent').style.display = 'block';
+                    
+                    // Update page title for admin mode
+                    if (isAdminMode) {
+                        document.getElementById('pageTitle').textContent = `แก้ไขข้อมูลนิสิต: ${data.name}`;
+                        // Add admin notice
+                        const notice = document.createElement('div');
+                        notice.className = 'alert alert-warning';
+                        notice.innerHTML = '<strong>โหมดแอดมิน:</strong> คุณกำลังแก้ไขข้อมูลนิสิตในฐานะผู้ดูแลระบบ';
+                        document.getElementById('pageTitle').after(notice);
+                    }
+                    
+                } else {
+                    throw new Error('ไม่พบข้อมูลนิสิต');
+                }
+                
+            } catch (error) {
+                console.error('Error loading profile data:', error);
+                document.getElementById('errorMessage').textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        }
+
+        // Handle profile form submission
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get profile image data
+            const profileImageSrc = document.getElementById('profileImagePreview').src;
+            const profileImageData = profileImageSrc.includes('data:') ? profileImageSrc : null;
+
+            // Update Firestore
+            const updateData = {
+                prefix: document.getElementById('prefix').value,
+                name: document.getElementById('name').value,
+                surname: document.getElementById('surname').value,
+                major: document.getElementById('major').value,
+                class: document.getElementById('class').value,
+                address: document.getElementById('address').value,
+                phone: document.getElementById('phone').value
+            };
+
+            if (profileImageData) {
+                updateData.profileImage = profileImageData;
+            }
+
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const loading = document.getElementById('loading');
+            
+            // Show loading
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            try {
+                // Update Firestore with profile image
+                await db.collection('students').doc(currentUser.studentCode).update(updateData);
+                
+                // Update session storage
+                const updatedUserData = {
+                    ...currentUser,
+                    name: document.getElementById('name').value,
+                    profileImage: profileImageData || currentUser.profileImage
+                };
+                sessionStorage.setItem('currentUser', JSON.stringify(updatedUserData));
+                
+                successMessage.textContent = 'บันทึกข้อมูลสำเร็จ!';
+                successMessage.style.display = 'block';
+                
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Profile update error:', error);
+                errorMessage.textContent = error.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+                errorMessage.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        function resetForm() {
+            // Reset form to original data
+            document.getElementById('prefix').value = originalData.prefix || '';
+            document.getElementById('name').value = originalData.name || '';
+            document.getElementById('surname').value = originalData.surname || '';
+            document.getElementById('major').value = originalData.major || '';
+            document.getElementById('class').value = originalData.class || '';
+            document.getElementById('address').value = originalData.address || '';
+            document.getElementById('phone').value = originalData.phone || '';
+            document.getElementById('profileImagePreview').src = originalData.profileImage || 'images/student_image/default.png';
+        }
+
+        function previewProfileImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profileImagePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
+</body>
+</html>

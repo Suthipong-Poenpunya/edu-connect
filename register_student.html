@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนนิสิตใหม่</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: rgb(222, 92, 142);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .logo {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .navbar {
+            background-color: rgb(222, 92, 142);
+            color: white;
+            padding: 15px 0;
+        }
+        .btn-primary {
+            background-color: rgb(222, 92, 142);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            width: 100%;
+            transition: background-color 0.3s ease;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: rgb(200, 80, 130);
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        .success-message {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: rgb(222, 92, 142);
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex align-items-center">
+                    <img src="images/Chula-LOGO.png" alt="Chula Logo" class="logo">
+                    <div class="navbar-brand">EDU CU Connect</div>
+                </div>
+                <button class="btn btn-secondary" onclick="logout()">ออกจากระบบ</button>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>ลงทะเบียนนิสิตใหม่</h1>
+        <form id="registerForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="student_code">รหัสนิสิต</label>
+                        <input type="text" class="form-control" id="student_code" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_card">เลขบัตรประชาชน</label>
+                        <input type="text" class="form-control" id="id_card" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="prefix">คำนำหน้า</label>
+                        <select class="form-control" id="prefix" required>
+                            <option value="">เลือกคำนำหน้า</option>
+                            <option value="นาย">นาย</option>
+                            <option value="นาง">นาง</option>
+                            <option value="นางสาว">นางสาว</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="name">ชื่อ</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="surname">นามสกุล</label>
+                        <input type="text" class="form-control" id="surname" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="faculty">คณะ</label>
+                        <input type="text" class="form-control" id="faculty" value="ครุศาสตร์" readonly>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="major">สาขาวิชา</label>
+                        <select class="form-control" id="major" required>
+                            <option value="">เลือกสาขาวิชา</option>
+                            <option value="เทคโนโลยีการศึกษา">เทคโนโลยีการศึกษา</option>
+                            <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+                            <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+                            <option value="ภาษาอังกฤษ">ภาษาอังกฤษ</option>
+                            <option value="ไทย">ไทย</option>
+                            <option value="สังคมศึกษา">สังคมศึกษา</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="class">ชั้นปี</label>
+                        <select class="form-control" id="class" required>
+                            <option value="">เลือกชั้นปี</option>
+                            <option value="1">ปีที่ 1</option>
+                            <option value="2">ปีที่ 2</option>
+                            <option value="3">ปีที่ 3</option>
+                            <option value="4">ปีที่ 4</option>
+                            <option value="5">ปีที่ 5+</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">ที่อยู่</label>
+                <textarea class="form-control" id="address" rows="3" required></textarea>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="phone">เบอร์โทรศัพท์</label>
+                        <input type="tel" class="form-control" id="phone" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="email">อีเมล</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="password">รหัสผ่าน</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="confirm_password">ยืนยันรหัสผ่าน</label>
+                        <input type="password" class="form-control" id="confirm_password" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">ลงทะเบียน</button>
+            </div>
+        </form>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+        <div class="loading" id="loading">กำลังลงทะเบียน...</div>
+        
+        <div class="back-link">
+            <a href="login.html">กลับไปหน้าเข้าสู่ระบบ</a>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnZ-sh1RhmND1_N_drLOi9uL4KUdFpB0Q",
+            authDomain: "edu-connect-a8315.firebaseapp.com",
+            projectId: "edu-connect-a8315",
+            storageBucket: "edu-connect-a8315.firebasestorage.app",
+            messagingSenderId: "33042525923",
+            appId: "1:33042525923:web:be51fde4766b06fd3a9fd6",
+            measurementId: "G-QGG90GGG3Y"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Handle registration form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                student_code: document.getElementById('student_code').value,
+                id_card: document.getElementById('id_card').value,
+                prefix: document.getElementById('prefix').value,
+                name: document.getElementById('name').value,
+                surname: document.getElementById('surname').value,
+                faculty: document.getElementById('faculty').value,
+                major: document.getElementById('major').value,
+                class: document.getElementById('class').value,
+                address: document.getElementById('address').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                confirm_password: document.getElementById('confirm_password').value
+            };
+            
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const loading = document.getElementById('loading');
+            
+            // Validate passwords match
+            if (formData.password !== formData.confirm_password) {
+                errorMessage.textContent = 'รหัสผ่านไม่ตรงกัน';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Show loading
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            try {
+                // Create email from student code
+                const email = `${formData.student_code}@chula.ac.th`;
+                
+                // Create user in Firebase Auth
+                const userCredential = await auth.createUserWithEmailAndPassword(email, formData.password);
+                const user = userCredential.user;
+                
+                // Store additional user data in Firestore
+                await db.collection('students').doc(formData.student_code).set({
+                    student_code: formData.student_code,
+                    id_card: formData.id_card,
+                    prefix: formData.prefix,
+                    name: formData.name,
+                    surname: formData.surname,
+                    faculty: formData.faculty,
+                    major: formData.major,
+                    class: formData.class,
+                    address: formData.address,
+                    phone: formData.phone,
+                    email: formData.email,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'active'
+                });
+                
+                successMessage.textContent = 'ลงทะเบียนสำเร็จ! กำลัง redirect ไปหน้าเข้าสู่ระบบ...';
+                successMessage.style.display = 'block';
+                
+                // Redirect to login page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                errorMessage.textContent = error.message || 'เกิดข้อผิดพลาดในการลงทะเบียน';
+                errorMessage.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
